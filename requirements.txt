@@ -4,6 +4,7 @@ scikit-learn
 imbalanced-learn
 xgboost
 joblib
+shap
 matplotlib
 seaborn
 jupyter
