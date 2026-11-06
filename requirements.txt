@@ -5,6 +5,8 @@ imbalanced-learn
 xgboost
 joblib
 shap
+requests
+streamlit
 matplotlib
 seaborn
 jupyter
