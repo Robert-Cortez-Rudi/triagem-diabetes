@@ -49,7 +49,13 @@ def build_user_prompt(facts: PatientFacts) -> str:
     if facts.risk_phrases:
         lines.extend(f"- {p}" for p in facts.risk_phrases)
     else:
-        lines.append("- Nenhum fator de risco se destacou.")
+        # Sem fatores de risco, o modelo pequeno tende a misturar "nenhum fator"
+        # com os pontos a favor na mesma lista; a instrução separa os dois.
+        lines.append(
+            "- Nenhum. Na seção de fatores, NÃO faça lista de riscos: escreva uma "
+            "frase dizendo que nenhum fator de risco se destacou e depois explique, "
+            "em frases simples, os pontos a favor abaixo, sem acrescentar nada além deles."
+        )
     lines.append("")
     lines.append("Pontos a favor do paciente:")
     if facts.protective_phrases:

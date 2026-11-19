@@ -1,20 +1,26 @@
 """Treinamento, avaliação e comparação de modelos de triagem de diabetes.
 
-Modelos comparados (``models``):
-    1. Regressão Logística (baseline), dentro de um Pipeline com StandardScaler.
-    2. Random Forest.
-    3. XGBoost.
+Modelos comparados (``models``; estimadores em ``estimators``):
+    1. Regressão Logística multinomial, dentro de um Pipeline com StandardScaler.
+    2. Árvore de Decisão.
+    3. k-NN, com StandardScaler e subamostragem (Pipeline do imbalanced-learn).
+    4. Random Forest.
+    5. XGBoost (opcional no requisito; representante avançado de árvores).
 
 Desbalanceamento: a Classe 1 (Pré-diabetes) tem cerca de 2% da base. A
-Regressão Logística e a Random Forest usam ``class_weight="balanced"``; o
-XGBoost não tem esse parâmetro para multiclasse e recebe pesos por amostra
-equivalentes (``compute_sample_weight("balanced")``).
+Regressão Logística, a Árvore de Decisão e a Random Forest usam
+``class_weight="balanced"``; o XGBoost não tem esse parâmetro para multiclasse e
+recebe pesos por amostra equivalentes (``compute_sample_weight("balanced")``);
+o k-NN não aceita pesos e usa ``RandomUnderSampler`` só durante o ``fit``.
 
 Seleção (``comparison``): cada modelo passa por validação cruzada estratificada
 no conjunto de treino. O vencedor é o de maior *score de seleção*, a média
 harmônica entre o F1 Macro e o Recall da Classe 1 na validação cruzada. A média
 harmônica pune o modelo que sacrifica uma métrica pela outra. O conjunto de
 teste só é usado para o relatório final, nunca para escolher o modelo.
+Todos os modelos entram no ranking, mas só os ``deployable`` (hoje, a
+Regressão Logística) podem ser publicados: o SHAP linear de ``src.explain``,
+a interface e a LLM dependem da interpretabilidade por coeficientes.
 
 Artefatos salvos em ``models/`` (``persistence``):
     - ``best_model.joblib``: estimador vencedor, já treinado em todo o treino

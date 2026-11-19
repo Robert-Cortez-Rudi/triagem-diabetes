@@ -1,4 +1,4 @@
-"""Modelos candidatos: Regressão Logística, Random Forest e XGBoost."""
+"""Modelos candidatos: Regressão Logística, Árvore de Decisão, k-NN, Random Forest e XGBoost."""
 
 from __future__ import annotations
 
@@ -6,14 +6,8 @@ from dataclasses import dataclass
 from typing import Callable
 
 from sklearn.base import BaseEstimator
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import LogisticRegression
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler
-from xgboost import XGBClassifier
 
-from src.preprocess import RANDOM_STATE
-from src.train.config import CLASSES
+from src.train import estimators
 
 
 @dataclass(frozen=True)
@@ -25,60 +19,24 @@ class ModelSpec:
         factory: Função que devolve um estimador novo, ainda não treinado.
         needs_sample_weight: Se o desbalanceamento é tratado por pesos de
             amostra no ``fit`` (caso do XGBoost), em vez de ``class_weight``.
+        deployable: Se o modelo pode ir para o app. Só a Regressão Logística:
+            ``src.explain`` (SHAP linear), a interface e a LLM dependem dos
+            seus coeficientes, e a interpretabilidade é requisito do sistema.
     """
 
     name: str
     factory: Callable[[], BaseEstimator]
     needs_sample_weight: bool = False
+    deployable: bool = False
 
 
-def _logistic_regression() -> Pipeline:
-    return Pipeline(
-        steps=[
-            ("scaler", StandardScaler()),
-            (
-                "clf",
-                LogisticRegression(
-                    class_weight="balanced",
-                    max_iter=2000,
-                    random_state=RANDOM_STATE,
-                ),
-            ),
-        ]
-    )
-
-
-def _random_forest() -> RandomForestClassifier:
-    # Profundidade e folha mínima limitadas: árvores completas decoram a classe
-    # majoritária e quase nunca chegam a prever Pré-diabetes.
-    return RandomForestClassifier(
-        n_estimators=300,
-        max_depth=14,
-        min_samples_leaf=20,
-        class_weight="balanced",
-        n_jobs=-1,
-        random_state=RANDOM_STATE,
-    )
-
-
-def _xgboost() -> XGBClassifier:
-    return XGBClassifier(
-        objective="multi:softprob",
-        num_class=len(CLASSES),
-        n_estimators=400,
-        learning_rate=0.05,
-        max_depth=6,
-        subsample=0.8,
-        colsample_bytree=0.8,
-        tree_method="hist",
-        eval_metric="mlogloss",
-        n_jobs=-1,
-        random_state=RANDOM_STATE,
-    )
-
-
+# Os quatro primeiros são exigidos pelo documento de requisitos; o XGBoost entra
+# como representante avançado dos métodos baseados em árvores. Todos são
+# comparados; o modelo publicado é o melhor entre os ``deployable``.
 MODEL_SPECS: tuple[ModelSpec, ...] = (
-    ModelSpec("Regressão Logística", _logistic_regression),
-    ModelSpec("Random Forest", _random_forest),
-    ModelSpec("XGBoost", _xgboost, needs_sample_weight=True),
+    ModelSpec("Regressão Logística", estimators.logistic_regression, deployable=True),
+    ModelSpec("Árvore de Decisão", estimators.decision_tree),
+    ModelSpec("k-NN", estimators.knn),
+    ModelSpec("Random Forest", estimators.random_forest),
+    ModelSpec("XGBoost", estimators.xgboost, needs_sample_weight=True),
 )

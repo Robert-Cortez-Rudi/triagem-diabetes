@@ -27,6 +27,7 @@ class ModelReport:
     test: EvaluationResult
     train_seconds: float
     model: BaseEstimator = field(repr=False)
+    deployable: bool = False
 
     @property
     def cv_score(self) -> float:
@@ -42,7 +43,7 @@ def compare_models(
 
     Para cada modelo: validação cruzada no treino, treino final em todo o
     treino e avaliação no teste. O vencedor é o de maior score de seleção
-    médio na validação cruzada.
+    médio na validação cruzada entre os modelos publicáveis (``deployable``).
 
     Args:
         data: Conjuntos de treino e teste vindos de ``src.preprocess``.
@@ -82,10 +83,18 @@ def compare_models(
             logger.error("  %s descartado: %s", spec.name, exc)
             continue
 
-        reports.append(ModelReport(spec.name, cv, test_ev, elapsed, model))
+        reports.append(ModelReport(spec.name, cv, test_ev, elapsed, model, spec.deployable))
 
-    if not reports:
-        raise RuntimeError("Nenhum modelo foi treinado com sucesso.")
+    deployable = [r for r in reports if r.deployable]
+    if not deployable:
+        raise RuntimeError("Nenhum modelo publicável foi treinado com sucesso.")
 
-    best = max(reports, key=lambda r: r.cv_score)
+    leader = max(reports, key=lambda r: r.cv_score)
+    best = max(deployable, key=lambda r: r.cv_score)
+    if leader is not best:
+        logger.info(
+            "Líder do ranking na CV: %s (%.4f). Publicado: %s (%.4f), o melhor "
+            "entre os modelos interpretáveis usados pelo app.",
+            leader.name, leader.cv_score, best.name, best.cv_score,
+        )
     return reports, best

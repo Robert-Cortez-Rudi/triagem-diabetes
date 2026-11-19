@@ -11,7 +11,7 @@ from src.llm.fallback import fallback_explanation
 from src.llm.ollama_client import LLMUnavailableError, call_ollama, check_ollama
 from src.llm.prompts import SYSTEM_PROMPT, build_user_prompt
 from src.llm.texts import DISCLAIMER, GENERIC_TEXT
-from src.llm.validation import validate_llm_text
+from src.llm.validation import strip_instruction_echo, validate_llm_text
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +35,7 @@ def generate_patient_explanation_with_source(
         facts = extract_facts(explanation_dict)
         check_ollama()
         logger.info("Gerando explicação com o Ollama (%s)...", OLLAMA_MODEL)
-        text = call_ollama(SYSTEM_PROMPT, build_user_prompt(facts))
+        text = strip_instruction_echo(call_ollama(SYSTEM_PROMPT, build_user_prompt(facts)))
         problems = validate_llm_text(text)
         if problems:
             raise LLMUnavailableError(f"Texto da LLM reprovado: {'; '.join(problems)}")

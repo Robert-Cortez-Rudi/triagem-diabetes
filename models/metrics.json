@@ -1,7 +1,8 @@
 {
   "best_model": "Regressão Logística",
-  "selection_criterion": "média harmônica entre F1 Macro e Recall da Classe 1 (Pré-diabetes), média da validação cruzada estratificada no treino",
-  "trained_at": "2026-10-23T16:03:45+00:00",
+  "selection_criterion": "média harmônica entre F1 Macro e Recall da Classe 1 (Pré-diabetes), média da validação cruzada estratificada no treino, entre os modelos interpretáveis por coeficientes (requisito do SHAP linear e do app)",
+  "cv_ranking_leader": "Árvore de Decisão",
+  "trained_at": "2026-11-19T16:10:37+00:00",
   "random_state": 42,
   "cv_folds": 5,
   "feature_names": [
@@ -69,7 +70,95 @@
         ],
         "selection_score": 0.3401360598683332
       },
-      "train_seconds": 0.3
+      "train_seconds": 0.4
+    },
+    "Árvore de Decisão": {
+      "cv": {
+        "f1_macro_mean": 0.39515706157728675,
+        "f1_macro_std": 0.0023488079237447717,
+        "recall_class1_mean": 0.32298792719845354,
+        "recall_class1_std": 0.02185173482825639,
+        "f1_class1_mean": 0.05015969964025866,
+        "f1_class1_std": 0.0007663226240940466,
+        "selection_score_mean": 0.3550768405710536,
+        "selection_score_std": 0.014175667825451356
+      },
+      "test": {
+        "accuracy": 0.5793241508366517,
+        "f1_macro": 0.4019286812702358,
+        "f1_weighted": 0.663014173690919,
+        "recall_class1": 0.2894168466522678,
+        "precision_class1": 0.02666401353099194,
+        "f1_class1": 0.04882937050195864,
+        "recall_per_class": {
+          "Sem diabetes": 0.5806061243817742,
+          "Pré-diabetes": 0.2894168466522678,
+          "Diabetes": 0.6106282946288645
+        },
+        "confusion_matrix": [
+          [
+            22070,
+            8060,
+            7882
+          ],
+          [
+            243,
+            268,
+            415
+          ],
+          [
+            1010,
+            1723,
+            4286
+          ]
+        ],
+        "selection_score": 0.3365174918015106
+      },
+      "train_seconds": 0.62
+    },
+    "k-NN": {
+      "cv": {
+        "f1_macro_mean": 0.3871343079795674,
+        "f1_macro_std": 0.0033899649447107962,
+        "recall_class1_mean": 0.308131451289346,
+        "recall_class1_std": 0.008662864669421773,
+        "f1_class1_mean": 0.049824846782857826,
+        "f1_class1_std": 0.0005050982454737144,
+        "selection_score_mean": 0.34303489374647445,
+        "selection_score_std": 0.004122083969060054
+      },
+      "test": {
+        "accuracy": 0.577257001109733,
+        "f1_macro": 0.3936847875954972,
+        "f1_weighted": 0.6643391696530622,
+        "recall_class1": 0.3369330453563715,
+        "precision_class1": 0.029028656494231486,
+        "f1_class1": 0.053452115812917596,
+        "recall_per_class": {
+          "Sem diabetes": 0.59391771019678,
+          "Pré-diabetes": 0.3369330453563715,
+          "Diabetes": 0.518734862516028
+        },
+        "confusion_matrix": [
+          [
+            22576,
+            8220,
+            7216
+          ],
+          [
+            261,
+            312,
+            353
+          ],
+          [
+            1162,
+            2216,
+            3641
+          ]
+        ],
+        "selection_score": 0.3631047817683516
+      },
+      "train_seconds": 0.16
     },
     "Random Forest": {
       "cv": {
@@ -113,36 +202,36 @@
         ],
         "selection_score": 0.2643913669833634
       },
-      "train_seconds": 7.83
+      "train_seconds": 15.6
     },
     "XGBoost": {
       "cv": {
-        "f1_macro_mean": 0.4175246695982115,
-        "f1_macro_std": 0.0013222431395094533,
-        "recall_class1_mean": 0.2319684867053288,
-        "recall_class1_std": 0.010382591840105385,
-        "f1_class1_mean": 0.05190479718157377,
-        "f1_class1_std": 0.0028479229409452585,
-        "selection_score_mean": 0.29810397181629045,
-        "selection_score_std": 0.008573619046610545
+        "f1_macro_mean": 0.4171273607317869,
+        "f1_macro_std": 0.001667099626547775,
+        "recall_class1_mean": 0.23250720355983515,
+        "recall_class1_std": 0.013636257133373492,
+        "f1_class1_mean": 0.05179813745506882,
+        "f1_class1_std": 0.003062690539762181,
+        "selection_score_mean": 0.2983576609760255,
+        "selection_score_std": 0.0114197652797829
       },
       "test": {
-        "accuracy": 0.6278042518005962,
-        "f1_macro": 0.422219370503905,
-        "f1_weighted": 0.6984638868638581,
+        "accuracy": 0.6294579715821311,
+        "f1_macro": 0.42290929308640185,
+        "f1_weighted": 0.6997178300159779,
         "recall_class1": 0.2505399568034557,
-        "precision_class1": 0.030196537810751007,
-        "f1_class1": 0.053897084446509466,
+        "precision_class1": 0.03045418745077448,
+        "f1_class1": 0.054307116104868915,
         "recall_per_class": {
-          "Sem diabetes": 0.6355624539619068,
+          "Sem diabetes": 0.6376144375460381,
           "Pré-diabetes": 0.2505399568034557,
-          "Diabetes": 0.635560621171107
+          "Diabetes": 0.6352756802963385
         },
         "confusion_matrix": [
           [
-            24159,
-            6078,
-            7775
+            24237,
+            6015,
+            7760
           ],
           [
             268,
@@ -150,14 +239,14 @@
             426
           ],
           [
-            1185,
-            1373,
-            4461
+            1189,
+            1371,
+            4459
           ]
         ],
-        "selection_score": 0.31447448903016717
+        "selection_score": 0.3146656590351125
       },
-      "train_seconds": 6.07
+      "train_seconds": 12.55
     }
   }
 }

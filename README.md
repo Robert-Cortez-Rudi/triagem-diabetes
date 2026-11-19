@@ -13,6 +13,54 @@ Sistema inteligente de apoio à triagem que classifica o perfil de diabetes em t
 
 Baixe o arquivo `diabetes_012_health_indicators_BRFSS2015.csv` e salve em `data/`.
 
+## Arquitetura em 3 camadas
+
+1. **Aprendizado e construção do conhecimento** (`src/preprocess/`, `src/train/`):
+   carga do CSV, remoção de duplicatas, descarte de `MentHlth`, `Sex`, `CholCheck`,
+   `AnyHealthcare` e `NoDocbcCost`, criação da feature `InNaturaFood` (frutas OU
+   vegetais diariamente), divisão estratificada 80/20, tratamento do desbalanceamento
+   e comparação de cinco algoritmos.
+2. **Inferência inteligente e evidências** (`app.py`, `src/ui/`, `src/explain/`): o
+   paciente preenche o formulário no Streamlit, o modelo prediz a classe e as
+   probabilidades, e o SHAP aponta os fatores que mais aumentaram e reduziram o risco.
+3. **Explicação e justificativa** (`src/llm/`): uma LLM local e privada (Ollama,
+   `qwen2.5:3b`) transforma o resultado e os fatores SHAP em um texto simples e
+   empático. Sem a LLM, um modo offline monta o texto com templates.
+
+## Modelos e resultados
+
+Algoritmos comparados, todos com `random_state = 42`:
+
+| Algoritmo | Tratamento do desbalanceamento |
+|---|---|
+| Regressão Logística multinomial (com `StandardScaler`) | `class_weight="balanced"` |
+| Árvore de Decisão | `class_weight="balanced"` |
+| k-NN, k = 25 (com `StandardScaler`) | subamostragem aleatória (`imbalanced-learn`) |
+| Random Forest | `class_weight="balanced"` |
+| XGBoost (opcional, árvores com *boosting*) | pesos por amostra balanceados |
+
+A métrica principal é o **F1 Macro**, acompanhada do **recall por classe** e da
+**matriz de confusão**. Para escolher o modelo, usamos a média harmônica entre o F1
+Macro e o Recall do Pré-diabetes na validação cruzada estratificada de 5 dobras. O
+conjunto de teste nunca é usado na escolha.
+
+Resultados no conjunto de teste (45.957 registros; CV = validação cruzada no treino):
+
+| Modelo | Score de seleção (CV) | F1 Macro | Recall Sem diabetes | Recall Pré-diabetes | Recall Diabetes | Acurácia |
+|---|---|---|---|---|---|---|
+| Árvore de Decisão | 0,3551 | 0,4019 | 0,581 | 0,289 | 0,611 | 0,5793 |
+| k-NN | 0,3430 | 0,3937 | 0,594 | 0,337 | 0,519 | 0,5773 |
+| **Regressão Logística** (publicada) | 0,3416 | **0,4263** | 0,650 | 0,283 | 0,597 | 0,6346 |
+| XGBoost | 0,2984 | 0,4229 | 0,638 | 0,251 | 0,635 | 0,6295 |
+| Random Forest | 0,2481 | 0,4287 | 0,659 | 0,191 | 0,675 | 0,6522 |
+
+A Árvore de Decisão lidera o score de seleção, mas tem F1 Macro bem menor que a
+Regressão Logística (0,395 contra 0,422 na CV). Publicamos a **Regressão Logística**
+porque ela tem o maior F1 Macro entre as três primeiras e é interpretável por
+coeficientes, o que permite a explicação SHAP exata usada na interface e na LLM. As
+métricas completas e as matrizes de confusão ficam em `models/metrics.json`, e as
+figuras do artigo em `notebooks/`.
+
 ## Estrutura do projeto
 
 ```
@@ -24,19 +72,20 @@ Baixe o arquivo `diabetes_012_health_indicators_BRFSS2015.csv` e salve em `data/
 │   ├── __init__.py    # marca src como pacote Python
 │   ├── logging_config.py  # formato do log no terminal
 │   ├── preprocess/    # carrega o CSV, trata duplicatas e divide treino e teste
-│   ├── train/         # Pipeline, validação cruzada, comparação de modelos e salvamento
+│   ├── train/         # 5 modelos, validação cruzada, comparação e salvamento
 │   ├── explain/       # fatores associados a cada predição (SHAP)
 │   ├── llm/           # explicação em linguagem simples (Ollama, com modo offline)
 │   └── ui/            # componentes da interface Streamlit
 ├── app.py             # ponto de entrada da interface Streamlit
-├── requirements.txt   # dependências do projeto
+├── CLAUDE.md          # escopo, dicionário de dados e regras técnicas do projeto
+├── requirements.txt   # dependências do projeto (versões fixadas)
 ├── .gitignore         # arquivos e pastas fora do versionamento
 └── README.md          # este arquivo
 ```
 
 ## Como executar
 
-Crie o ambiente virtual:
+Requer Python 3.11 ou superior (testado no 3.13). Crie o ambiente virtual:
 
 ```
 python -m venv .venv
@@ -133,9 +182,28 @@ python -m src.llm          # gera o texto para o paciente (Ollama ou modo offlin
 ```
 
 O `src.train` precisa rodar antes dos dois últimos, porque eles usam
-`models/best_model.joblib` e `models/metrics.json`.
+`models/best_model.joblib` e `models/metrics.json`. O modelo treinado já vem no
+repositório, então esse passo só é necessário para reproduzir o treino (cerca de
+3 minutos).
 
-## Status
+### Abrir a interface
 
-Em desenvolvimento: módulos de ML, explicabilidade e LLM prontos; interface
-Streamlit (`app.py`) pendente.
+```
+streamlit run app.py
+```
+
+O navegador abre em `http://localhost:8501`. Preencha o formulário na barra lateral
+e clique em **Realizar Triagem de Risco**. A tela mostra o perfil estimado com as
+probabilidades, os fatores que mais pesaram e a explicação em linguagem simples.
+
+### Notebook
+
+`notebooks/01_analise_exploratoria_e_metricas.ipynb` gera as figuras e a tabela
+comparativa usadas no artigo (distribuição do target, correlação, matriz de confusão
+e SHAP). Ele lê o modelo salvo em `models/`.
+
+## Aviso
+
+Esta é uma ferramenta de **apoio à triagem**. Ela não faz diagnóstico e não substitui
+a consulta médica. Só um profissional de saúde, com exames como glicemia de jejum e
+hemoglobina glicada, pode confirmar ou descartar diabetes.

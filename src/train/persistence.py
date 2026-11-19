@@ -47,8 +47,10 @@ def save_model(
         "best_model": best.name,
         "selection_criterion": (
             "média harmônica entre F1 Macro e Recall da Classe 1 (Pré-diabetes), "
-            "média da validação cruzada estratificada no treino"
+            "média da validação cruzada estratificada no treino, entre os modelos "
+            "interpretáveis por coeficientes (requisito do SHAP linear e do app)"
         ),
+        "cv_ranking_leader": max(reports, key=lambda r: r.cv_score).name,
         "trained_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "random_state": RANDOM_STATE,
         "cv_folds": CV_FOLDS,
