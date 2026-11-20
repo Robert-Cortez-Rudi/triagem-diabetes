@@ -27,6 +27,7 @@ Uso pelo terminal::
     python -m src.explain
 """
 
+from src.explain.attention import get_attention_points
 from src.explain.descriptions import (
     FEATURE_DESCRIPTIONS,
     VALUE_DESCRIPTIONS,
@@ -55,6 +56,7 @@ __all__ = [
     "ExplainerBundle",
     "build_factor",
     "describe_value",
+    "get_attention_points",
     "get_prediction_explanation",
     "load_explainer",
     "prepare_patient",

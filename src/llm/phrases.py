@@ -36,9 +36,14 @@ RISK_PHRASES: dict[str, Any] = {
         f"Sua faixa etária ({f['value_description']}) pesa no resultado: o risco "
         "de diabetes aumenta naturalmente com a idade."
     ),
+    # "Boa" (3) fica abaixo da média da base e também pesa como risco, mas não
+    # indica problema; só "regular" e "ruim" (4 e 5) recebem o texto de alerta.
     "GenHlth": lambda f: (
         f"Você avaliou sua saúde geral como \"{f['value_description'].lower()}\". "
-        "Essa percepção costuma refletir problemas de saúde que merecem atenção."
+        + ("Essa percepção costuma refletir problemas de saúde que merecem atenção."
+           if int(f["value"]) >= 4 else
+           "Quem avalia a saúde como muito boa ou excelente costuma ter risco menor, "
+           "por isso esse ponto pesou um pouco.")
     ),
     "PhysActivity": lambda f: (
         "Você não praticou atividade física no último mês. O exercício ajuda o "

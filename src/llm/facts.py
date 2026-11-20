@@ -7,7 +7,7 @@ from typing import Any, Mapping
 
 from src.llm.config import MAX_FACTORS, MIN_IMPACT
 from src.llm.phrases import RISK_PHRASES
-from src.llm.recommendations import GENERAL_RECOMMENDATIONS, RECOMMENDATIONS
+from src.llm.recommendations import recommendations_for
 from src.llm.texts import CLASS_HEADLINES
 
 
@@ -54,6 +54,7 @@ class PatientFacts:
     risk_factors: list[dict[str, Any]]
     risk_phrases: list[str]
     protective_phrases: list[str]
+    attention_phrases: list[str]
     recommendations: list[str]
 
 
@@ -64,8 +65,7 @@ def extract_facts(explanation_dict: Mapping[str, Any]) -> PatientFacts:
         explanation_dict: Saída de ``get_prediction_explanation``.
 
     Returns:
-        :class:`PatientFacts`. Listas de fatores ausentes ou inválidas viram
-        listas vazias.
+        :class:`PatientFacts`. Listas ausentes ou inválidas viram listas vazias.
 
     Raises:
         ValueError: Se a entrada não for um dicionário ou não trouxer uma
@@ -84,9 +84,9 @@ def extract_facts(explanation_dict: Mapping[str, Any]) -> PatientFacts:
 
     risks = _relevant(explanation_dict.get("top_risk_factors"), +1)
     protective = _relevant(explanation_dict.get("protective_factors"), -1)
-
-    recs = [RECOMMENDATIONS[f["feature"]] for f in risks if f["feature"] in RECOMMENDATIONS]
-    recs.append(GENERAL_RECOMMENDATIONS[code])
+    # Pontos de atenção (regras clínicas do src.explain): entram nas recomendações.
+    attention = [p for p in explanation_dict.get("attention_points") or [] if p.get("feature")]
+    features = [f["feature"] for f in risks] + [p["feature"] for p in attention]
 
     return PatientFacts(
         class_code=code,
@@ -94,6 +94,7 @@ def extract_facts(explanation_dict: Mapping[str, Any]) -> PatientFacts:
         opening=opening,
         risk_factors=risks,
         risk_phrases=[_risk_phrase(f) for f in risks],
-        protective_phrases=[_protective_phrase(f) for f in protective],
-        recommendations=list(dict.fromkeys(recs)),
+        protective_phrases=[_protective_phrase(f) for f in protective if f["feature"] not in features],
+        attention_phrases=[str(p.get("title", "")) for p in attention],
+        recommendations=recommendations_for(features, code),
     )

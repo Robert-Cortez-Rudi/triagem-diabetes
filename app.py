@@ -19,6 +19,7 @@ from __future__ import annotations
 import streamlit as st
 
 from src.logging_config import configure_logging
+from src.ui.attention import render_attention
 from src.ui.factors import render_factors
 from src.ui.form import render_form, validate_input
 from src.ui.page import render_header, run_triage, warm_up_model
@@ -55,6 +56,8 @@ def main() -> None:
     render_prediction(triage["result"])
     st.divider()
     render_factors(triage["result"])
+    st.divider()
+    render_attention(triage["result"])
     st.divider()
     render_explanation(triage["text"], triage["source"])
 

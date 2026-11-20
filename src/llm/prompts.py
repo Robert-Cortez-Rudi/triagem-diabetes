@@ -17,6 +17,8 @@ diagnóstico. Use expressões como "sinais compatíveis com" ou "pontos em comum
 - Use SOMENTE os fatos fornecidos. Não invente sintomas, exames, valores ou fatores.
 - Não prescreva remédios nem doses.
 - Não escreva aviso legal no final; ele será adicionado pelo sistema.
+- Não crie subtítulos nem listas extras (como "Pontos a favor" ou "Pontos de \
+atenção"): os pontos de atenção já aparecem em outra parte da tela.
 
 Responda em Markdown, exatamente com estas três seções e nesta ordem:
 {SECTION_SUMMARY}
@@ -63,6 +65,13 @@ def build_user_prompt(facts: PatientFacts) -> str:
     else:
         lines.append("- Nenhum se destacou.")
     lines.append("")
+    if facts.attention_phrases:
+        lines.append(
+            "Pontos de atenção (hábitos e condições de risco presentes nas respostas; "
+            "NUNCA elogie nenhum deles e trate-os nas recomendações):"
+        )
+        lines.extend(f"- {p}" for p in facts.attention_phrases)
+        lines.append("")
     lines.append("Recomendações sugeridas (adapte com suas palavras):")
     lines.extend(f"- {r}" for r in facts.recommendations)
     lines.append("")

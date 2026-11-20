@@ -54,8 +54,12 @@ def render_factors(result: dict[str, Any]) -> None:
                     text=f"Impacto relativo: {impact / max_impact:.0%}",
                 )
 
+    # Um ponto de atenção (ex.: álcool em excesso) nunca é exibido como proteção,
+    # mesmo quando o modelo o associa a menor risco (artefato do BRFSS).
+    attention = {p["feature"] for p in result.get("attention_points", [])}
     protective: list[dict[str, Any]] = [
-        f for f in result.get("protective_factors", []) if -float(f["shap_impact"]) >= MIN_IMPACT
+        f for f in result.get("protective_factors", [])
+        if -float(f["shap_impact"]) >= MIN_IMPACT and f["feature"] not in attention
     ]
     if protective:
         with st.expander("🛡️ Fatores que reduziram o risco"):

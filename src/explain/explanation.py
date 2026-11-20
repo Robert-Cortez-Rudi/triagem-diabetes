@@ -7,6 +7,7 @@ from typing import Any, Mapping
 import numpy as np
 import pandas as pd
 
+from src.explain.attention import get_attention_points
 from src.explain.descriptions import build_factor
 from src.explain.loader import load_explainer
 from src.explain.patient import prepare_patient
@@ -51,7 +52,7 @@ def get_prediction_explanation(
         ``probabilities`` (``{rótulo: probabilidade}``), ``top_risk_factors``
         (até ``top_n``, do maior para o menor impacto), ``protective_factors``
         (até ``top_n``, impacto negativo, do mais forte para o mais fraco),
-        ``explanation_basis`` e ``model``. Cada fator traz ``feature``,
+        ``explanation_basis``, ``attention_points`` e ``model``. Cada fator traz ``feature``,
         ``description``, ``value``, ``value_description`` e ``shap_impact``
         (em log-odds).
 
@@ -93,5 +94,6 @@ def get_prediction_explanation(
             "reference": "média do conjunto de treino",
             "note": basis,
         },
+        "attention_points": get_attention_points(patient_data_dict),
         "model": bundle.model_name,
     }

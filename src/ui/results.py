@@ -43,7 +43,7 @@ def render_prediction(result: dict[str, Any]) -> None:
 
 def render_explanation(text: str, source: str) -> None:
     """Explicação em linguagem natural e a origem do texto (LLM ou fallback)."""
-    st.subheader("3. Explicação personalizada")
+    st.subheader("4. Explicação personalizada")
     if source == "llm":
         st.success(f"🤖 Texto gerado pela LLM local (Ollama · `{OLLAMA_MODEL}`).")
     else:

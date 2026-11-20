@@ -29,6 +29,15 @@ RECOMMENDATIONS: dict[str, str] = {
               "glicemia gratuitos pelo SUS.",
 }
 
+MAX_SPECIFIC: int = 4  # + a recomendação geral = até 5 itens, como pede o prompt
+
+
+def recommendations_for(features: list[str], class_code: int) -> list[str]:
+    """Recomendações dos fatores (na ordem dada, sem repetir) e a geral da classe."""
+    specific = list(dict.fromkeys(RECOMMENDATIONS[f] for f in features if f in RECOMMENDATIONS))
+    return specific[:MAX_SPECIFIC] + [GENERAL_RECOMMENDATIONS[class_code]]
+
+
 GENERAL_RECOMMENDATIONS: dict[int, str] = {
     0: "Mantenha os bons hábitos e faça exames de rotina conforme a orientação "
        "do seu médico.",
