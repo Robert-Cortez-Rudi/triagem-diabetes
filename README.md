@@ -77,7 +77,6 @@ figuras do artigo em `notebooks/`.
 │   ├── llm/           # explicação em linguagem simples (Ollama, com modo offline)
 │   └── ui/            # componentes da interface Streamlit
 ├── app.py             # ponto de entrada da interface Streamlit
-├── CLAUDE.md          # escopo, dicionário de dados e regras técnicas do projeto
 ├── requirements.txt   # dependências do projeto (versões fixadas)
 ├── .gitignore         # arquivos e pastas fora do versionamento
 └── README.md          # este arquivo
